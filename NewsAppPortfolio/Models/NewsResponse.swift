@@ -12,4 +12,3 @@ struct NewsResponse: Codable {
     let totalResults: Int
     let articles: [Article]
 }
-
