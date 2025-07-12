@@ -25,7 +25,7 @@ class NewsViewModel: ObservableObject {
         errorMessage = nil
 
         do {
-            let fetchedArticles = try await newsService.fetchTopHeadlines(country: "br")
+            let fetchedArticles = try await newsService.fetchTopHeadlines(country: "us")
             self.articles = fetchedArticles
             loadingState = .success
         } catch {
