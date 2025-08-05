@@ -7,11 +7,12 @@
 
 import Foundation
 import SwiftUI
-import SafariServices
 
 
 struct ArticleDetailView: View {
     let article: Article
+    
+    @State private var showingSafariView = false
 
     var body: some View {
         ScrollView {
@@ -54,15 +55,22 @@ struct ArticleDetailView: View {
                 Text(article.content ?? article.description ?? "Nenhum conteúdo ou descrição disponível.")
                     .font(.body)
                     .padding(.bottom)
-
+                
                 if let articleURL = URL(string: article.url) {
-                    Link("Ler Notícia Completa", destination: articleURL)
-                        .font(.headline)
-                        .foregroundColor(.blue)
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 15)
-                        .background(Capsule().fill(Color.blue.opacity(0.1)))
-                        .cornerRadius(20)
+                    Button {
+                        showingSafariView = true
+                    } label: {
+                        Label("Read Full Arcticle", systemImage: "safari.fill")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 15)
+                            .background(Capsule().fill(Color.blue))
+                            .cornerRadius(20)
+                    }
+                    .sheet(isPresented: $showingSafariView) {
+                        SafariView(url: articleURL)
+                    }
                 }
             }
             .padding()
@@ -88,7 +96,7 @@ struct ArticleDetailView: View {
 // Prévia para o Xcode Canvas
 struct ArticleDetailView_Previews: PreviewProvider {
     static var previews: some View {
-        NavigationView { // A prévia precisa estar dentro de um NavigationView para o .navigationTitle
+        NavigationView { 
             ArticleDetailView(article: Article(
                 source: Source(id: "techcrunch", name: "TechCrunch"),
                 author: "Frederic Lardinois",
