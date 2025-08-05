@@ -20,7 +20,6 @@ struct ArticleRowView: View {
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)
-                            .frame(height: 200)
                             .clipped()
                     } placeholder: {
                         ProgressView()
@@ -34,12 +33,16 @@ struct ArticleRowView: View {
                 Text(article.title)
                     .font(.headline)
                     .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 if let description = article.description {
                     Text(description)
                         .font(.subheadline)
                         .foregroundColor(.gray)
                         .lineLimit(3)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
 
                 HStack {
@@ -54,6 +57,7 @@ struct ArticleRowView: View {
             }
             .padding(.vertical, 8)
         }
+        .padding(.horizontal)
         .buttonStyle(PlainButtonStyle())
     }
 
