@@ -1,6 +1,3 @@
-Com certeza! Um bom arquivo README.md é essencial para apresentar seu projeto de portfólio no GitHub de forma profissional.
-
-Aqui está um modelo de README.md em inglês, customizado para o projeto do seu aplicativo de notícias. Você pode copiar e colar este texto e substituir os [Colchetes] pelas suas informações.
 
 NewsApp
 A modern news application for iOS built with SwiftUI, showcasing a clean user interface and robust data fetching capabilities.
