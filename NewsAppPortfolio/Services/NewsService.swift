@@ -13,7 +13,7 @@ class NewsService {
 
     private let baseUrl = "https://newsapi.org/v2/top-headlines"
 
-    func fetchTopHeadlines(category: String? = nil, country: String = "br") async throws -> [Article] {
+    func fetchTopHeadlines(category: String? = nil, country: String = "us") async throws -> [Article] {
         guard !apiKey.isEmpty else {
             throw NetworkError.apiKeyMissing
         }
@@ -45,10 +45,8 @@ class NewsService {
             let newsResponse = try JSONDecoder().decode(NewsResponse.self, from: data)
             return newsResponse.articles
         } catch let decodingError as DecodingError {
-            print("Decoding error: \(decodingError)")
             throw NetworkError.decodingError(decodingError)
         } catch {
-            print("Network request failed: \(error)")
             throw NetworkError.requestFailed(error)
         }
     }

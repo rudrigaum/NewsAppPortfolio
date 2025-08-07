@@ -9,27 +9,45 @@ import SwiftUI
 
 struct ContentView: View {
     
-        @StateObject private var viewModel = NewsViewModel()
-
-        var body: some View {
-            NavigationView {
+    @StateObject private var viewModel = NewsViewModel()
+    
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 0) {
+                
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 15) {
+                        ForEach(NewsViewModel.categories, id: \.self) { category in
+                            Button(action: {
+                                viewModel.selectedCategory = category
+                            }) {
+                                Text(category)
+                                    .font(.caption)
+                                    .fontWeight(.bold)
+                                    .padding(.vertical, 8)
+                                    .padding(.horizontal, 12)
+                                    .background(viewModel.selectedCategory == category ? Color.blue : Color.gray.opacity(0.2))
+                                    .foregroundColor(viewModel.selectedCategory == category ? .white : .primary)
+                                    .cornerRadius(16)
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+                }
+                
                 Group {
                     switch viewModel.loadingState {
                     case .idle:
-                        Text("Pressione para carregar as notícias")
-                            .onAppear {
-                                if case .idle = viewModel.loadingState {
-                                    Task {
-                                        await viewModel.fetchArticles()
-                                    }
-                                }
-                            }
+                        Text("Selecione uma categoria para carregar as notícias")
                     case .loading:
                         ProgressView("Carregando notícias...")
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                     case .success:
                         List(viewModel.articles) { article in
                             ArticleRowView(article: article)
                         }
+                        .listStyle(.plain)
                         .refreshable {
                             await viewModel.fetchArticles()
                         }
@@ -48,12 +66,20 @@ struct ContentView: View {
                         }
                     }
                 }
-                .navigationTitle("Principais Notícias")
+            }
+            .navigationTitle("Principais Notícias")
+            .onChange(of: viewModel.selectedCategory) { newCategory in
+                Task {
+                    await viewModel.fetchArticles(category: newCategory)
+                }
+            }
+            .onAppear {
+                if case .idle = viewModel.loadingState {
+                    Task {
+                        await viewModel.fetchArticles(category: viewModel.selectedCategory)
+                    }
+                }
             }
         }
     }
-
-
-#Preview {
-    ContentView()
 }
