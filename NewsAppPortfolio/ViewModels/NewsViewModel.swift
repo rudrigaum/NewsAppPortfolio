@@ -12,26 +12,31 @@ class NewsViewModel: ObservableObject {
     @Published var articles: [Article] = []
     @Published var loadingState: LoadingState = .idle
     @Published var errorMessage: String?
-
+    static let categories: [String] = ["general", "technology", "business", "health", "sports", "science"]
+    @Published var selectedCategory: String = "general"
+    
     private let newsService: NewsService
-
+    
     init(newsService: NewsService = NewsService()) {
         self.newsService = newsService
     }
-
+    
     @MainActor
-    func fetchArticles() async {
+    func fetchArticles(category: String? = nil) async {
+        if let category = category {
+            self.selectedCategory = category
+        }
+        
         loadingState = .loading
         errorMessage = nil
-
+        
         do {
-            let fetchedArticles = try await newsService.fetchTopHeadlines(country: "us")
-            self.articles = fetchedArticles
+            let articles = try await newsService.fetchTopHeadlines(category: self.selectedCategory.lowercased())
+            self.articles = articles
             loadingState = .success
         } catch {
-            loadingState = .failed(error)
             errorMessage = error.localizedDescription
-            print("Error fetching articles: \(error)") 
+            loadingState = .failed(error)
         }
     }
 }
