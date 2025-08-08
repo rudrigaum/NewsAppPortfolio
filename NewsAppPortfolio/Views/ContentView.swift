@@ -41,8 +41,13 @@ struct ContentView: View {
                     case .idle:
                         Text("Selecione uma categoria para carregar as notícias")
                     case .loading:
-                        ProgressView("Carregando notícias...")
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        List {
+                            ForEach(0..<5) { _ in
+                                SkeletonArticleRowView()
+                            }
+                        }
+                        .listStyle(.plain)
+                                                .redacted(reason: .placeholder)
                     case .success:
                         List(viewModel.articles) { article in
                             ArticleRowView(article: article)
