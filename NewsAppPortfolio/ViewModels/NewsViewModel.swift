@@ -14,6 +14,8 @@ class NewsViewModel: ObservableObject {
     @Published var errorMessage: String?
     static let categories: [String] = ["general", "technology", "business", "health", "sports", "science"]
     @Published var selectedCategory: String = "general"
+    @Published var searchQuery: String = ""
+    private var searchTask: Task<Void, Never>? = nil
     
     private let newsService: NewsService
     
@@ -22,17 +24,22 @@ class NewsViewModel: ObservableObject {
     }
     
     @MainActor
-    func fetchArticles(category: String? = nil) async {
-        if let category = category {
-            self.selectedCategory = category
-        }
+    func fetchArticles(for query: String? = nil) async {
         
         loadingState = .loading
         errorMessage = nil
         
         do {
-            let articles = try await newsService.fetchTopHeadlines(category: self.selectedCategory.lowercased())
-            self.articles = articles
+            let fetchedArticles: [Article]
+            
+            if let query = query, !query.isEmpty {
+                fetchedArticles = try await newsService.fetchTopHeadlines(query: query)
+            } else {
+
+                fetchedArticles = try await newsService.fetchTopHeadlines(category: self.selectedCategory)
+            }
+            
+            self.articles = fetchedArticles
             loadingState = .success
         } catch {
             errorMessage = error.localizedDescription
