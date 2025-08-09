@@ -13,7 +13,7 @@ class NewsService {
 
     private let baseUrl = "https://newsapi.org/v2/top-headlines"
 
-    func fetchTopHeadlines(category: String? = nil, country: String = "us") async throws -> [Article] {
+    func fetchTopHeadlines(category: String? = nil, query: String? = nil, country: String = "us") async throws -> [Article] {
         guard !apiKey.isEmpty else {
             throw NetworkError.apiKeyMissing
         }
@@ -26,6 +26,10 @@ class NewsService {
 
         if let category = category {
             queryItems.append(URLQueryItem(name: "category", value: category))
+        }
+        
+        if let query = query {
+            queryItems.append(URLQueryItem(name: "q", value: query))
         }
 
         components?.queryItems = queryItems

@@ -15,11 +15,27 @@ struct ContentView: View {
         NavigationView {
             VStack(spacing: 0) {
                 
+                TextField("Search for articles...", text: $viewModel.searchQuery)
+                    .padding(8)
+                    .background(Color(.systemGray6))
+                    .cornerRadius(8)
+                    .padding(.horizontal)
+                    .onChange(of: viewModel.searchQuery) { newQuery in
+                        Task {
+                            try await Task.sleep(nanoseconds: 500_000_000)
+                            await viewModel.fetchArticles(for: newQuery)
+                        }
+                    }
+                
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 15) {
                         ForEach(NewsViewModel.categories, id: \.self) { category in
                             Button(action: {
                                 viewModel.selectedCategory = category
+                                viewModel.searchQuery = ""
+                                Task {
+                                    await viewModel.fetchArticles()
+                                }
                             }) {
                                 Text(category)
                                     .font(.caption)
@@ -47,14 +63,18 @@ struct ContentView: View {
                             }
                         }
                         .listStyle(.plain)
-                                                .redacted(reason: .placeholder)
+                        .redacted(reason: .placeholder)
                     case .success:
-                        List(viewModel.articles) { article in
-                            ArticleRowView(article: article)
-                        }
-                        .listStyle(.plain)
-                        .refreshable {
-                            await viewModel.fetchArticles()
+                        if viewModel.articles.isEmpty && !viewModel.searchQuery.isEmpty {
+                            EmptySearchView(message: "No results found for '\(viewModel.searchQuery)'.")
+                        } else {
+                            List(viewModel.articles) { article in
+                                ArticleRowView(article: article)
+                            }
+                            .listStyle(.plain)
+                            .refreshable {
+                                await viewModel.fetchArticles()
+                            }
                         }
                     case .failed(let error):
                         VStack {
@@ -72,16 +92,11 @@ struct ContentView: View {
                     }
                 }
             }
-            .navigationTitle("Principais Notícias")
-            .onChange(of: viewModel.selectedCategory) { newCategory in
-                Task {
-                    await viewModel.fetchArticles(category: newCategory)
-                }
-            }
+            .navigationTitle("News")
             .onAppear {
                 if case .idle = viewModel.loadingState {
                     Task {
-                        await viewModel.fetchArticles(category: viewModel.selectedCategory)
+                        await viewModel.fetchArticles()
                     }
                 }
             }
