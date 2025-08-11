@@ -16,6 +16,11 @@ struct MainTabView: View {
                     Label("News", systemImage: "newspaper")
                 }
             
+            SearchView()
+                .tabItem {
+                    Label("Search", systemImage: "magnifyingglass")
+                }
+            
             Text("Favorites")
                 .tabItem {
                     Label("Favorites", systemImage: "bookmark.fill")
