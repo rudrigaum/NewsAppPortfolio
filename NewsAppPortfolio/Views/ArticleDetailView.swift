@@ -32,31 +32,37 @@ struct ArticleDetailView: View {
                     }
                 }
 
-                Text(article.title)
+                Text(article.title ?? "Title unavailable")
                     .font(.largeTitle)
                     .fontWeight(.bold)
 
                 HStack {
-                    Text(article.author ?? "Autor Desconhecido")
+                    Text(article.author ?? "Unknown Author")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                     Spacer()
-                    Text(article.source?.name ?? "Fonte Desconhecida")
+                    Text(article.source?.name ?? "Unknown Source")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
 
-                Text(formattedDate(from: article.publishedAt))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                if let publishedDate = article.publishedAt {
+                    Text(publishedDate.formattedDate)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                } else {
+                    Text("Data não disponível")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
 
                 Divider()
 
-                Text(article.content ?? article.description ?? "Nenhum conteúdo ou descrição disponível.")
+                Text(article.content ?? article.articleDescription ?? "No content or description available.")
                     .font(.body)
                     .padding(.bottom)
                 
-                if let articleURL = URL(string: article.url) {
+                if let urlString = article.url, let articleURL = URL(string: urlString) {
                     Button {
                         showingSafariView = true
                     } label: {
@@ -77,36 +83,5 @@ struct ArticleDetailView: View {
         }
         .navigationTitle("Detalhes da Notícia")
         .navigationBarTitleDisplayMode(.inline)
-    }
-
-    private func formattedDate(from dateString: String) -> String {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let date = formatter.date(from: dateString) {
-            let displayFormatter = DateFormatter()
-            displayFormatter.dateStyle = .medium
-            displayFormatter.timeStyle = .short
-            displayFormatter.locale = Locale(identifier: "pt_BR")
-            return displayFormatter.string(from: date)
-        }
-        return "Data Desconhecida"
-    }
-}
-
-// Prévia para o Xcode Canvas
-struct ArticleDetailView_Previews: PreviewProvider {
-    static var previews: some View {
-        NavigationView { 
-            ArticleDetailView(article: Article(
-                source: Source(id: "techcrunch", name: "TechCrunch"),
-                author: "Frederic Lardinois",
-                title: "Exemplo de Título da Notícia Detalhada e Muito Longa Para Testar a Quebra de Linhas em Telas Maiores.",
-                description: "Esta é uma descrição detalhada de exemplo para a notícia. Ela deve ser suficientemente longa para testar o comportamento de rolagem e a formatação do texto. Aqui poderíamos ter parágrafos adicionais com mais informações sobre o evento ou tópico em questão.",
-                url: "https://techcrunch.com/example",
-                urlToImage: "https://techcrunch.com/wp-content/uploads/2023/11/IMG_20231102_173922.jpg?w=1390&crop=1",
-                publishedAt: "2023-11-03T10:00:00Z",
-                content: "Este é o conteúdo completo do artigo, que pode ser bastante extenso. Ele incluiria todas as informações, citações e dados que compõem a notícia. A ideia é simular um artigo real, que muitas vezes é bem mais longo que apenas a descrição inicial. Pode haver vários parágrafos aqui para preencher a tela e garantir que o ScrollView funcione como esperado. Os usuários podem querer rolar para baixo para ler todo o contexto."
-            ))
-        }
     }
 }

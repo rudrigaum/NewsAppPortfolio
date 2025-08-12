@@ -30,13 +30,13 @@ struct ArticleRowView: View {
                     .cornerRadius(8)
                 }
 
-                Text(article.title)
+                Text(article.title ?? "Title unavailable")
                     .font(.headline)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
 
-                if let description = article.description {
+                if let description = article.articleDescription {
                     Text(description)
                         .font(.subheadline)
                         .foregroundColor(.gray)
@@ -46,13 +46,19 @@ struct ArticleRowView: View {
                 }
 
                 HStack {
-                    Text(article.source?.name ?? "Fonte Desconhecida")
+                    Text(article.source?.name ?? "Unknown Source")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     Spacer()
-                    Text(formattedDate(from: article.publishedAt))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    if let publishedDate = article.publishedAt {
+                        Text(publishedDate.formattedDate)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    } else {
+                        Text("Date not available")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
             }
             .padding(.vertical, 8)
@@ -61,35 +67,4 @@ struct ArticleRowView: View {
         .buttonStyle(PlainButtonStyle())
     }
 
-    private func formattedDate(from dateString: String) -> String {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let date = formatter.date(from: dateString) {
-            let displayFormatter = DateFormatter()
-            displayFormatter.dateStyle = .medium
-            displayFormatter.timeStyle = .short
-            displayFormatter.locale = Locale(identifier: "pt_BR")
-            return displayFormatter.string(from: date)
-        }
-        return "Data Desconhecida"
-    }
-}
-
-struct ArticleRowView_Previews: PreviewProvider {
-    static var previews: some View {
-        NavigationView {
-            ArticleRowView(article: Article(
-                source: Source(id: "techcrunch", name: "TechCrunch"),
-                author: "Frederic Lardinois",
-                title: "Exemplo de Título da Notícia Muito Longo Para Testar as Linhas",
-                description: "Esta é uma descrição de exemplo para a notícia. Ela deve ser longa o suficiente para testar o limite de linhas.",
-                url: "https://techcrunch.com/wp-content/uploads/2023/11/IMG_20231102_173922.jpg?w=1390&crop=1",
-                urlToImage: "https://techcrunch.com/wp-content/uploads/2023/11/IMG_20231102_173922.jpg?w=1390&crop=1",
-                publishedAt: "2023-11-03T10:00:00Z",
-                content: "Conteúdo completo do artigo de exemplo."
-            ))
-            .previewLayout(.sizeThatFits)
-            .padding()
-        }
-    }
 }
