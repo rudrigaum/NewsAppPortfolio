@@ -5,91 +5,64 @@
 //  Created by Rodrigo Cerqueira Reis on 12/07/25.
 //
 
-import Foundation
 import SwiftUI
+import SwiftData
+
 
 struct ArticleRowView: View {
-    let article: Article
+    @State private var viewModel: ArticleRowViewModel
+    @State private var isSaved: Bool = false
+    
+    init(viewModel: ArticleRowViewModel) {
+        self._viewModel = State(initialValue: viewModel)
+    }
 
     var body: some View {
-        NavigationLink(destination: ArticleDetailView(article: article)) {
+        HStack(alignment: .top, spacing: 16) {
+            AsyncImage(url: viewModel.article.urlToImage.flatMap { URL(string: $0) }) { image in
+                image.resizable()
+            } placeholder: {
+                Color.gray
+            }
+            .frame(width: 100, height: 100)
+            .cornerRadius(8)
+            
             VStack(alignment: .leading, spacing: 8) {
-                if let imageUrl = article.urlToImage,
-                   let url = URL(string: imageUrl) {
-                    AsyncImage(url: url) { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .clipped()
-                    } placeholder: {
-                        ProgressView()
-                            .frame(height: 200)
-                            .frame(maxWidth: .infinity)
-                            .background(Color.gray.opacity(0.2))
-                    }
-                    .cornerRadius(8)
-                }
-
-                Text(article.title)
+                Text(viewModel.article.title ?? "Untitled")
                     .font(.headline)
+                
+                Text(viewModel.article.articleDescription ?? "No description")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
                     .lineLimit(2)
-                    .multilineTextAlignment(.leading)
-                    .fixedSize(horizontal: false, vertical: true)
 
-                if let description = article.description {
-                    Text(description)
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-                        .lineLimit(3)
-                        .multilineTextAlignment(.leading)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                HStack {
-                    Text(article.source?.name ?? "Fonte Desconhecida")
+                if let publishedDate = viewModel.article.publishedAt {
+                    Text(publishedDate.formattedDate)
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    Spacer()
-                    Text(formattedDate(from: article.publishedAt))
+                } else {
+                    Text("Date not available")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
             }
-            .padding(.vertical, 8)
+            
+            Spacer()
+            
+            if viewModel.article.url != nil {
+                Button {
+                    viewModel.toggleSavedState()
+                    isSaved.toggle()
+                } label: {
+                    Image(systemName: isSaved ? "star.fill" : "star")
+                        .foregroundColor(.blue)
+                }
+                .buttonStyle(.plain)
+            }
         }
-        .padding(.horizontal)
-        .buttonStyle(PlainButtonStyle())
-    }
-
-    private func formattedDate(from dateString: String) -> String {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let date = formatter.date(from: dateString) {
-            let displayFormatter = DateFormatter()
-            displayFormatter.dateStyle = .medium
-            displayFormatter.timeStyle = .short
-            displayFormatter.locale = Locale(identifier: "pt_BR")
-            return displayFormatter.string(from: date)
+        .onAppear {
+            isSaved = viewModel.isArticleSaved()
         }
-        return "Data Desconhecida"
-    }
-}
-
-struct ArticleRowView_Previews: PreviewProvider {
-    static var previews: some View {
-        NavigationView {
-            ArticleRowView(article: Article(
-                source: Source(id: "techcrunch", name: "TechCrunch"),
-                author: "Frederic Lardinois",
-                title: "Exemplo de Título da Notícia Muito Longo Para Testar as Linhas",
-                description: "Esta é uma descrição de exemplo para a notícia. Ela deve ser longa o suficiente para testar o limite de linhas.",
-                url: "https://techcrunch.com/wp-content/uploads/2023/11/IMG_20231102_173922.jpg?w=1390&crop=1",
-                urlToImage: "https://techcrunch.com/wp-content/uploads/2023/11/IMG_20231102_173922.jpg?w=1390&crop=1",
-                publishedAt: "2023-11-03T10:00:00Z",
-                content: "Conteúdo completo do artigo de exemplo."
-            ))
-            .previewLayout(.sizeThatFits)
-            .padding()
-        }
+        .padding(.vertical, 8)
     }
 }

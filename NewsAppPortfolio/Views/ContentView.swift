@@ -10,6 +10,7 @@ import SwiftUI
 struct ContentView: View {
     
     @StateObject private var viewModel = NewsViewModel()
+    @Environment(\.modelContext) private var modelContext
     
     var body: some View {
         NavigationView {
@@ -52,7 +53,7 @@ struct ContentView: View {
                         .redacted(reason: .placeholder)
                     case .success:
                         List(viewModel.articles) { article in
-                            ArticleRowView(article: article)
+                            ArticleRowWrapperView(viewModel: ArticleRowViewModel(article: article, modelContext: modelContext))
                         }
                         .listStyle(.plain)
                         .refreshable {

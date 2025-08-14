@@ -21,9 +21,9 @@ struct MainTabView: View {
                     Label("Search", systemImage: "magnifyingglass")
                 }
             
-            Text("Favorites")
+            SavedArticlesView()
                 .tabItem {
-                    Label("Favorites", systemImage: "bookmark.fill")
+                    Label("Favorites", systemImage: "star.fill")
                 }
             
             Text("Profile")
