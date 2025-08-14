@@ -23,7 +23,7 @@ struct MainTabView: View {
             
             SavedArticlesView()
                 .tabItem {
-                    Label("Favorites", systemImage: "bookmark.fill")
+                    Label("Favorites", systemImage: "star.fill")
                 }
             
             Text("Profile")

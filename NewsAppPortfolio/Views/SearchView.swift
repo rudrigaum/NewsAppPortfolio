@@ -10,6 +10,7 @@ import SwiftUI
 
 struct SearchView: View {
     @StateObject private var viewModel = NewsViewModel()
+    @Environment(\.modelContext) private var modelContext
     
     var body: some View {
         NavigationView {
@@ -45,7 +46,7 @@ struct SearchView: View {
                             EmptySearchView(message: "No results found for '\(viewModel.searchQuery)'.")
                         } else {
                             List(viewModel.articles) { article in
-                                ArticleRowView(article: article)
+                                ArticleRowWrapperView(viewModel: ArticleRowViewModel(article: article, modelContext: modelContext))
                             }
                             .listStyle(.plain)
                             .refreshable {

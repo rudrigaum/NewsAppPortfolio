@@ -12,6 +12,7 @@ struct NewsAppPortfolioApp: App {
     var body: some Scene {
         WindowGroup {
             MainTabView()
+                .modelContainer(for: Article.self)
         }
     }
 }
