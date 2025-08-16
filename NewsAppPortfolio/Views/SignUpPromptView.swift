@@ -9,7 +9,11 @@ import Foundation
 import SwiftUI
 
 struct SignUpPromptView: View {
+    
     @Environment(\.dismiss) private var dismiss
+    
+    @State private var showingAuthView = false
+    @State private var isLogin = false
     
     var body: some View {
         VStack(spacing: 20) {
@@ -30,15 +34,15 @@ struct SignUpPromptView: View {
             
             VStack(spacing: 15) {
                 Button("Create Account") {
-                    // TODO:
-                    dismiss()
+                    isLogin = false
+                    showingAuthView = true
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.regular)
             
                 Button("I already have an account") {
-                    // TODO:
-                    dismiss()
+                    isLogin = true
+                    showingAuthView = true
                 }
                 .foregroundColor(.blue)
             }
@@ -47,5 +51,8 @@ struct SignUpPromptView: View {
         .background(Color(.systemBackground))
         .cornerRadius(20)
         .shadow(radius: 20)
+        .sheet(isPresented: $showingAuthView) {
+            AuthView(isLogin: isLogin)
+        }
     }
 }
