@@ -14,6 +14,10 @@ final class ArticleRowViewModel {
     let article: Article
     private let modelContext: ModelContext
     
+    var isUserLoggedIn: Bool {
+        return false
+    }
+    
     init(article: Article, modelContext: ModelContext) {
         self.article = article
         self.modelContext = modelContext
