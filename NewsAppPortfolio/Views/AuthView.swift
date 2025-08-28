@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 struct AuthView: View {
-    // <<<<< CORRIGIDO: Propriedade @EnvironmentObject >>>>>
+    
     @EnvironmentObject var authManager: AuthManager
     
     @State private var isLogin = true
@@ -17,6 +17,7 @@ struct AuthView: View {
     @State private var password = ""
     @State private var isLoading = false
     @State private var authError: Error?
+    @State private var showSuccessMessage = false
     
     @Environment(\.dismiss) var dismiss
 
@@ -65,13 +66,24 @@ struct AuthView: View {
                         .font(.footnote)
                         .multilineTextAlignment(.center)
                 }
-
+                
+                if showSuccessMessage {
+                    HStack {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                        Text("Registration completed successfully!")
+                            .foregroundColor(.green)
+                            .fontWeight(.semibold)
+                    }
+                    .padding(.top, 10)
+                }
+                
                 Spacer()
                 
                 Button {
                     withAnimation {
                         isLogin.toggle()
-                        authError = nil // Limpa o erro ao alternar
+                        authError = nil
                     }
                 } label: {
                     Text(isLogin ? "Don't have an account? Sign up." : "Have an account? Sign in.")
@@ -100,8 +112,13 @@ struct AuthView: View {
                 try await authManager.signIn(email: email, password: password)
             } else {
                 try await authManager.signUp(email: email, password: password)
+                withAnimation {
+                    showSuccessMessage = true
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    dismiss()
+                }
             }
-            dismiss()
         } catch {
             authError = error
         }
