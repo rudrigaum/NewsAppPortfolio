@@ -5,7 +5,7 @@
 ## User settings
 xcuserdata/
 
-Secrets.plist
+*.xcodeproj/project.xcworkspace/xcshareddata/
 
 ## Obj-C/Swift specific
 *.hmap
