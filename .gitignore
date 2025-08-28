@@ -7,6 +7,10 @@ xcuserdata/
 
 *.xcodeproj/project.xcworkspace/xcshareddata/
 
+# Secrets and private configuration
+NewsAppPortfolio/GoogleService-Info.plist
+NewsAppPortfolio/Secrets.plist
+
 ## Obj-C/Swift specific
 *.hmap
 
