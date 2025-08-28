@@ -6,13 +6,38 @@
 //
 
 import SwiftUI
+import SwiftData
+import FirebaseAuth
+import FirebaseCore
+import FirebaseStorage
+
+class AppDelegate: NSObject, UIApplicationDelegate {
+    
+  var authManager: AuthManager?
+  
+  func application(_ application: UIApplication,
+                   didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+    FirebaseApp.configure()
+    self.authManager = AuthManager()
+    
+    return true
+  }
+}
 
 @main
 struct NewsAppPortfolioApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+
     var body: some Scene {
         WindowGroup {
-            MainTabView()
-                .modelContainer(for: Article.self)
+            if let authManager = delegate.authManager {
+                MainTabView()
+                    .modelContainer(for: Article.self)
+                    .environmentObject(authManager)
+            } else {
+                Text("Loading...")
+            }
         }
     }
 }
+
