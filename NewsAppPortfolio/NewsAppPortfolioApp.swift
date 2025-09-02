@@ -33,7 +33,7 @@ struct NewsAppPortfolioApp: App {
     var body: some Scene {
         WindowGroup {
             if let authManager = delegate.authManager, let favoritesManager = delegate.favoritesManager {
-                MainTabView()
+                ContentView()
                     .environmentObject(authManager)
                     .environmentObject(favoritesManager)
             } else {

@@ -14,33 +14,37 @@ class AuthManager: ObservableObject {
     @Published var isAuthenticated: Bool = false
     @Published var user: User?
     
+    // Observa o estado de autenticação do Firebase.
     private var authStateDidChangeListenerHandle: AuthStateDidChangeListenerHandle?
     
+    // Firestore database reference
     private var db: Firestore
-    
-    var currentUserId: String? {
-        Auth.auth().currentUser?.uid
-    }
     
     init() {
         self.db = Firestore.firestore()
         self.startListeningToAuthChanges()
     }
     
+    // Inicia a escuta por mudanças no estado de autenticação do Firebase.
     func startListeningToAuthChanges() {
+        // Remove qualquer ouvinte existente para evitar duplicações
         if let handle = authStateDidChangeListenerHandle {
             Auth.auth().removeStateDidChangeListener(handle)
         }
         
+        // Adiciona um novo ouvinte
         authStateDidChangeListenerHandle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
             guard let self = self else { return }
             
+            // Assegura que a atualização de estado aconteça no Main Actor
             Task { @MainActor in
                 self.user = user
                 self.isAuthenticated = (user != nil)
             }
         }
     }
+    
+    // MARK: - Autenticação
     
     @MainActor
     func signIn(email: String, password: String) async throws {

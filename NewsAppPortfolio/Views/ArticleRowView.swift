@@ -8,17 +8,19 @@
 import SwiftUI
 import SwiftData
 
-struct ArticleRowView: View {
-    let article: Article
-    
-    @EnvironmentObject var authManager: AuthManager
-    @EnvironmentObject var favoritesManager: FavoritesManager
 
-    @State private var showingAuthPrompt = false
+struct ArticleRowView: View {
+    @State private var viewModel: ArticleRowViewModel
+    @State private var isSaved: Bool = false
+    @State private var showingSignUpPromt = false
     
+    init(viewModel: ArticleRowViewModel) {
+        self._viewModel = State(initialValue: viewModel)
+    }
+
     var body: some View {
         HStack(alignment: .top, spacing: 16) {
-            AsyncImage(url: article.urlToImage.flatMap { URL(string: $0) }) { image in
+            AsyncImage(url: viewModel.article.urlToImage.flatMap { URL(string: $0) }) { image in
                 image.resizable()
             } placeholder: {
                 Color.gray
@@ -27,20 +29,20 @@ struct ArticleRowView: View {
             .cornerRadius(8)
             
             VStack(alignment: .leading, spacing: 8) {
-                Text(article.title ?? "Sem título")
+                Text(viewModel.article.title ?? "Untitled")
                     .font(.headline)
                 
-                Text(article.articleDescription ?? "Sem descrição")
+                Text(viewModel.article.articleDescription ?? "No description")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .lineLimit(2)
 
-                if let publishedDate = article.publishedAt {
+                if let publishedDate = viewModel.article.publishedAt {
                     Text(publishedDate.formattedDate)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 } else {
-                    Text("Data não disponível")
+                    Text("Date not available")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -48,28 +50,27 @@ struct ArticleRowView: View {
             
             Spacer()
             
-            if article.url != nil {
+            if viewModel.article.url != nil {
                 Button {
-                    if authManager.isAuthenticated {
-                        Task {
-                            if favoritesManager.isArticleSaved(article) {
-                                await favoritesManager.removeArticle(article)
-                            } else {
-                                await favoritesManager.saveArticle(article)
-                            }
-                        }
+                    if viewModel.isUserLoggedIn {
+                        viewModel.toggleSavedState()
+                        isSaved.toggle()
                     } else {
-                        showingAuthPrompt = true
+                        showingSignUpPromt = true
                     }
+                    
                 } label: {
-                    Image(systemName: favoritesManager.isArticleSaved(article) ? "star.fill" : "star")
+                    Image(systemName: isSaved ? "star.fill" : "star")
                         .foregroundColor(.blue)
                 }
                 .buttonStyle(.plain)
             }
         }
+        .onAppear {
+            isSaved = viewModel.isArticleSaved()
+        }
         .padding(.vertical, 8)
-        .sheet(isPresented: $showingAuthPrompt) {
+        .sheet(isPresented: $showingSignUpPromt) {
             SignUpPromptView()
         }
     }
