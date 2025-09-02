@@ -11,17 +11,16 @@ import SwiftData
 
 
 struct SavedArticlesView: View {
-    @Query(sort: \Article.publishedAt, order: .reverse) private var savedArticles: [Article]
-    @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject var favoritesManager: FavoritesManager
 
     var body: some View {
         NavigationView {
             VStack {
-                if savedArticles.isEmpty {
-                    ContentUnavailableView("No news saved", systemImage: "star.slash")
+                if favoritesManager.savedArticles.isEmpty {
+                    ContentUnavailableView("No news saved", systemImage: "bookmark.slash")
                 } else {
-                    List(savedArticles) { article in
-                        ArticleRowWrapperView(viewModel: ArticleRowViewModel(article: article, modelContext: modelContext))
+                    List(favoritesManager.savedArticles, id: \.title) { article in
+                        ArticleRowView(article: article)
                     }
                     .listStyle(.plain)
                 }
@@ -30,3 +29,4 @@ struct SavedArticlesView: View {
         }
     }
 }
+
