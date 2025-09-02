@@ -11,82 +11,86 @@ import FirebaseFirestore
 import Combine
 import FirebaseAuth
 
+@MainActor
 class FavoritesManager: ObservableObject {
-    private var db = Firestore.firestore()
-    private var articlesRef: CollectionReference {
-        guard let user = Auth.auth().currentUser else {
-            fatalError("User is not authenticated.")
-        }
-        return db.collection("users").document(user.uid).collection("articles")
-    }
-
-    @Published var favoriteArticles = [Article]()
+    @Published var savedArticles: [Article] = []
+    
+    private let firestore = Firestore.firestore()
+    private let authManager: AuthManager
+    private var listenerRegistration: ListenerRegistration?
     
     private var cancellables = Set<AnyCancellable>()
-    private var authStateSubscription: AnyCancellable?
-    private var snapshotListener: ListenerRegistration?
-
+    
     init(authManager: AuthManager) {
-        authStateSubscription = authManager.$user
-            .sink { [weak self] user in
+        self.authManager = authManager
+        setupSubscription()
+    }
+    
+    private func setupSubscription() {
+        authManager.$isAuthenticated
+            .sink { [weak self] isAuthenticated in
                 guard let self = self else { return }
-                if user != nil {
-                    self.startListeningForFavorites()
+                if isAuthenticated {
+                    self.startListening()
                 } else {
-                    self.stopListeningForFavorites()
+                    self.stopListening()
+                    self.savedArticles = []
                 }
             }
+            .store(in: &cancellables)
     }
-
-    func startListeningForFavorites() {
-        guard Auth.auth().currentUser != nil else { return }
-
-        stopListeningForFavorites()
-
-        snapshotListener = articlesRef.addSnapshotListener { [weak self] querySnapshot, error in
+    
+    func startListening() {
+        guard let userId = authManager.currentUserId else { return }
+        let favoritesCollection = firestore.collection("users").document(userId).collection("favorites")
+        
+        listenerRegistration = favoritesCollection.addSnapshotListener { [weak self] snapshot, error in
             guard let self = self else { return }
             
             if let error = error {
-                print("Error getting favorite articles: \(error.localizedDescription)")
+                print("Error fetching articles: \(error.localizedDescription)")
                 return
             }
             
-            guard let documents = querySnapshot?.documents else {
-                print("No documents found.")
-                return
-            }
-
-            self.favoriteArticles = documents.compactMap { doc in
-                try? doc.data(as: Article.self)
+            guard let documents = snapshot?.documents else { return }
+            
+            self.savedArticles = documents.compactMap { document in
+                try? document.data(as: Article.self)
             }
         }
     }
     
-    func stopListeningForFavorites() {
-        snapshotListener?.remove()
-        snapshotListener = nil
-        favoriteArticles = []
+    func stopListening() {
+        listenerRegistration?.remove()
+        listenerRegistration = nil
     }
     
-    func saveArticle(_ article: Article) async throws {
+    func saveArticle(_ article: Article) async {
+        guard authManager.isAuthenticated, let userId = authManager.currentUserId else { return }
+        
+        let favoritesCollection = firestore.collection("users").document(userId).collection("favorites")
+        
         do {
-            try articlesRef.document(article.id).setData(from: article)
+            let encodedArticle = try Firestore.Encoder().encode(article)
+            try await favoritesCollection.document(article.title ?? UUID().uuidString).setData(encodedArticle)
         } catch {
             print("Error saving article: \(error.localizedDescription)")
-            throw error
         }
     }
     
-    func removeArticle(_ article: Article) async throws {
+    func removeArticle(_ article: Article) async {
+        guard authManager.isAuthenticated, let userId = authManager.currentUserId else { return }
+        
+        let favoritesCollection = firestore.collection("users").document(userId).collection("favorites")
+        
         do {
-            try await articlesRef.document(article.id).delete()
+            try await favoritesCollection.document(article.title ?? UUID().uuidString).delete()
         } catch {
             print("Error removing article: \(error.localizedDescription)")
-            throw error
         }
     }
 
-    func isArticleFavorite(_ article: Article) -> Bool {
-        return favoriteArticles.contains(where: { $0.id == article.id })
+    func isArticleSaved(_ article: Article) -> Bool {
+        savedArticles.contains { $0.title == article.title }
     }
 }

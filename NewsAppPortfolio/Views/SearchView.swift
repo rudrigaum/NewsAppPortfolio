@@ -9,6 +9,9 @@ import Foundation
 import SwiftUI
 
 struct SearchView: View {
+    
+    @EnvironmentObject var authManager: AuthManager
+    @EnvironmentObject var favoritesManager: FavoritesManager
     @StateObject private var viewModel = NewsViewModel()
     @Environment(\.modelContext) private var modelContext
     
@@ -46,7 +49,9 @@ struct SearchView: View {
                             EmptySearchView(message: "No results found for '\(viewModel.searchQuery)'.")
                         } else {
                             List(viewModel.articles) { article in
-                                ArticleRowWrapperView(viewModel: ArticleRowViewModel(article: article, modelContext: modelContext))
+                                ArticleRowView(article: article)
+                                    .environmentObject(authManager)
+                                    .environmentObject(favoritesManager)
                             }
                             .listStyle(.plain)
                             .refreshable {
