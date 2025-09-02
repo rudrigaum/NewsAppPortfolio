@@ -12,6 +12,7 @@ import SwiftData
 struct ArticleRowView: View {
     @State private var viewModel: ArticleRowViewModel
     @State private var isSaved: Bool = false
+    @State private var showingSignUpPromt = false
     
     init(viewModel: ArticleRowViewModel) {
         self._viewModel = State(initialValue: viewModel)
@@ -51,8 +52,13 @@ struct ArticleRowView: View {
             
             if viewModel.article.url != nil {
                 Button {
-                    viewModel.toggleSavedState()
-                    isSaved.toggle()
+                    if viewModel.isUserLoggedIn {
+                        viewModel.toggleSavedState()
+                        isSaved.toggle()
+                    } else {
+                        showingSignUpPromt = true
+                    }
+                    
                 } label: {
                     Image(systemName: isSaved ? "star.fill" : "star")
                         .foregroundColor(.blue)
@@ -64,5 +70,8 @@ struct ArticleRowView: View {
             isSaved = viewModel.isArticleSaved()
         }
         .padding(.vertical, 8)
+        .sheet(isPresented: $showingSignUpPromt) {
+            SignUpPromptView()
+        }
     }
 }
