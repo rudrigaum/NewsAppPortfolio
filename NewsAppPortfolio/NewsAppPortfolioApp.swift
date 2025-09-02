@@ -7,20 +7,23 @@
 
 import SwiftUI
 import SwiftData
-import FirebaseAuth
 import FirebaseCore
+import FirebaseAuth
+import FirebaseFirestore
 
 class AppDelegate: NSObject, UIApplicationDelegate {
-    
-  var authManager: AuthManager?
-  
-  func application(_ application: UIApplication,
-                   didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-    FirebaseApp.configure()
-    self.authManager = AuthManager()
-    
-    return true
-  }
+    var authManager: AuthManager?
+    var favoritesManager: FavoritesManager?
+
+    func application(_ application: UIApplication,
+                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+        FirebaseApp.configure()
+        
+        self.authManager = AuthManager()
+        self.favoritesManager = FavoritesManager(authManager: self.authManager!)
+        
+        return true
+    }
 }
 
 @main
@@ -29,14 +32,13 @@ struct NewsAppPortfolioApp: App {
 
     var body: some Scene {
         WindowGroup {
-            if let authManager = delegate.authManager {
-                MainTabView()
-                    .modelContainer(for: Article.self)
+            if let authManager = delegate.authManager, let favoritesManager = delegate.favoritesManager {
+                ContentView()
                     .environmentObject(authManager)
+                    .environmentObject(favoritesManager)
             } else {
                 Text("Loading...")
             }
         }
     }
 }
-
