@@ -11,6 +11,8 @@ struct ContentView: View {
     
     @StateObject private var viewModel = NewsViewModel()
     @Environment(\.modelContext) private var modelContext
+    @EnvironmentObject var authManager: AuthManager
+    @EnvironmentObject var favoritesManager: FavoritesManager
     
     var body: some View {
         NavigationView {
@@ -53,7 +55,7 @@ struct ContentView: View {
                         .redacted(reason: .placeholder)
                     case .success:
                         List(viewModel.articles) { article in
-                            ArticleRowWrapperView(viewModel: ArticleRowViewModel(article: article, modelContext: modelContext))
+                            ArticleRowView(article: article)
                         }
                         .listStyle(.plain)
                         .refreshable {
