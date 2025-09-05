@@ -8,6 +8,7 @@ target 'NewsAppPortfolio' do
     # Pods for NewsAppPortfolio
   pod 'Firebase/Auth'
   pod 'Firebase/Firestore'
+  pod 'GoogleSignIn'
 
   target 'NewsAppPortfolioTests' do
     inherit! :search_paths
