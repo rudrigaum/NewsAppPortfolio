@@ -12,33 +12,41 @@ import FirebaseAuth
 import FirebaseFirestore
 
 class AppDelegate: NSObject, UIApplicationDelegate {
-    var authManager: AuthManager?
-    var favoritesManager: FavoritesManager?
-
-    func application(_ application: UIApplication,
-                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-        FirebaseApp.configure()
-        
-        self.authManager = AuthManager()
-        self.favoritesManager = FavoritesManager(authManager: self.authManager!)
-        
-        return true
-    }
+  
+  func application(_ application: UIApplication,
+                   didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+    FirebaseApp.configure()
+    return true
+  }
 }
 
 @main
 struct NewsAppPortfolioApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    
+    @StateObject private var authManager: AuthManager
+    @StateObject private var favoritesManager: FavoritesManager
+    
+    init() {
+        let authManagerInstance = AuthManager()
+        self._authManager = StateObject(wrappedValue: authManagerInstance)
+        
+        self._favoritesManager = StateObject(wrappedValue: FavoritesManager(authManager: authManagerInstance))
+    }
 
     var body: some Scene {
         WindowGroup {
-            if let authManager = delegate.authManager, let favoritesManager = delegate.favoritesManager {
-                MainTabView()
-                    .environmentObject(authManager)
-                    .environmentObject(favoritesManager)
-            } else {
-                Text("Loading...")
-            }
+            MainTabView()
+                .modelContainer(for: Article.self)
+                // Injeta ambos os gerenciadores no ambiente
+                .environmentObject(authManager)
+                .environmentObject(favoritesManager)
+                .task {
+                    // Este bloco de código é executado de forma assíncrona
+                    // após a View aparecer, o que garante que o Firebase
+                    // já foi configurado antes de tentarmos acessá-lo.
+                    authManager.startListeningToAuthChanges()
+                }
         }
     }
 }

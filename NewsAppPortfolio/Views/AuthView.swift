@@ -49,15 +49,35 @@ struct AuthView: View {
                 if isLoading {
                     ProgressView()
                 } else {
-                    Button(isLogin ? "enter" : "register") {
-                        Task {
-                            await authenticate()
+                    VStack(spacing: 10) {
+                        Button(isLogin ? "Entrar" : "Cadastrar") {
+                            Task {
+                                await authenticate()
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+                        .tint(.blue)
+                        
+                        Button {
+                            Task {
+                                await authenticateWithGoogle()
+                            }
+                        } label: {
+                            HStack {
+                                Image(systemName: "g.circle.fill")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 20, height: 20)
+                                Text("Continuar com o Google")
+                                    .fontWeight(.semibold)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color(.systemGray6))
+                            .cornerRadius(10)
                         }
                     }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-                    .tint(.blue)
-                    .padding(.top, 10)
                 }
                 
                 if let authError = authError {
@@ -77,13 +97,14 @@ struct AuthView: View {
                     }
                     .padding(.top, 10)
                 }
-                
+
                 Spacer()
                 
                 Button {
                     withAnimation {
                         isLogin.toggle()
                         authError = nil
+                        showSuccessMessage = false
                     }
                 } label: {
                     Text(isLogin ? "Don't have an account? Sign up." : "Have an account? Sign in.")
@@ -124,5 +145,33 @@ struct AuthView: View {
         }
         
         isLoading = false
+    }
+    
+    private func authenticateWithGoogle() async {
+        isLoading = true
+        authError = nil
+        
+        do {
+            try await authManager.signInWithGoogle(presentingViewController: getRootViewController())
+            dismiss()
+        } catch {
+            authError = error
+        }
+        
+        isLoading = false
+    }
+}
+
+private extension View {
+    func getRootViewController() -> UIViewController {
+        guard let screen = UIApplication.shared.connectedScenes.first as? UIWindowScene else {
+            return .init()
+        }
+
+        guard let root = screen.windows.first?.rootViewController else {
+            return .init()
+        }
+
+        return root
     }
 }
